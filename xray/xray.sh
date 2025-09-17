@@ -127,14 +127,6 @@ function DownloadConfiguration() {
             sed -i "s|XHTTP4VLESS|$(echo -n ${CUSTOM_ENCRYPT_SEED}XHTTP4VLESS${CUSTOM_UUID} | base64 | sha256sum | awk '{print $1}')|g" "${DOCKER_PATH}/conf/config.json"
         fi
 
-        if [ "${VLESS_ENCRYPTION_CLIENT_PASSWORD}" != "" ] && [ "${VLESS_ENCRYPTION_SEED_PRIVATEKEY}" != "" ] ; then
-            if [ "${RUNNING_MODE:-server}" == "client" ]; then
-                sed -i "s|\"encryption\": \"none\"|\"encryption\": \"${VLESS_ENCRYPTION_MODE:-mlkem768x25519plus}.${VLESS_ENCRYPTION_TYPE:-random}.0rtt.${VLESS_ENCRYPTION_CLIENT_PASSWORD}\"|g" "${DOCKER_PATH}/conf/config.json"
-            else
-                sed -i "s|\"decryption\": \"none\"|\"decryption\": \"${VLESS_ENCRYPTION_MODE:-mlkem768x25519plus}.${VLESS_ENCRYPTION_TYPE:-random}.300s.${VLESS_ENCRYPTION_SEED_PRIVATEKEY}\"|g" "${DOCKER_PATH}/conf/config.json"
-            fi
-        fi
-
         if [ "${ENABLE_DNS_CACHE:-false}" != "false" ]; then
             sed -i 's/"disableCache": true/"disableCache": false/g' "${DOCKER_PATH}/conf/config.json"
         fi
@@ -189,6 +181,14 @@ function DownloadConfiguration() {
             done && JSON_STRING="${JSON_STRING%, }"
 
             sed -i "s/{ \"address\": \"${CUSTOM_SERVERNAME}\", \"port\": 443, \"users\": \\[ { \"encryption\": \"none\", \"id\": \"${CUSTOM_UUID}\" } \\] }/${JSON_STRING}/g" "${DOCKER_PATH}/conf/config.json"
+        fi
+
+        if [ "${VLESS_ENCRYPTION_CLIENT_PASSWORD}" != "" ] && [ "${VLESS_ENCRYPTION_SEED_PRIVATEKEY}" != "" ] ; then
+            if [ "${RUNNING_MODE:-server}" == "client" ]; then
+                sed -i "s|\"encryption\": \"none\"|\"encryption\": \"${VLESS_ENCRYPTION_MODE:-mlkem768x25519plus}.${VLESS_ENCRYPTION_TYPE:-random}.0rtt.${VLESS_ENCRYPTION_CLIENT_PASSWORD}\"|g" "${DOCKER_PATH}/conf/config.json"
+            else
+                sed -i "s|\"decryption\": \"none\"|\"decryption\": \"${VLESS_ENCRYPTION_MODE:-mlkem768x25519plus}.${VLESS_ENCRYPTION_TYPE:-random}.300s.${VLESS_ENCRYPTION_SEED_PRIVATEKEY}\"|g" "${DOCKER_PATH}/conf/config.json"
+            fi
         fi
     fi
 
